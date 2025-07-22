@@ -8,6 +8,8 @@ from pydantic import BaseModel
 import uuid
 from app.core.dependencies import get_current_user
 from datetime import datetime
+from app.config import settings
+import os
 
 router = APIRouter(prefix="/workspace", tags=["workspace"])
 
@@ -43,6 +45,11 @@ async def create_workspace(
     db.add(db_workspace)
     db.commit()
     db.refresh(db_workspace)
+
+    # 根据Workspace初始化一个GraphRAG目录
+    graph_rag_dir = os.path.join(settings.ROOT_DIR, str(db_workspace.id))
+    graph_rag_dir = os.path.join(settings.ROOT_DIR, str(db_workspace.id))
+    os.makedirs(graph_rag_dir, exist_ok=True)  # 确保目录被创建
     return db_workspace
 
 @router.get("/", response_model=List[WorkspaceRead])
