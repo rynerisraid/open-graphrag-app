@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     OPENAI_API_BASE: str
     TEXT_EMBEDDING_MODEL: str
-    TEXT_EMBEDDINE_BASE_URL: str
-    TEXT_EMBEDDINE_API_KEY: str
+    TEXT_EMBEDDING_BASE_URL: str
+    TEXT_EMBEDDING_API_KEY: str
     NEO4J_URI: str
     NEO4J_USER: str
     NEO4J_PASSWORD: str

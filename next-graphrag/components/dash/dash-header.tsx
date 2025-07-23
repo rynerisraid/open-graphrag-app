@@ -1,28 +1,36 @@
 "use client";
 
-import Link from "next/link";
-import { SidebarToggle } from "@/components/sidebar-toggle";
-import { Button } from "@/components/ui/button";
-import { MessageCircleCodeIcon } from "lucide-react";
 import { memo } from "react";
+import Link from "next/link";
 
-function PureDashHeader({}: {}) {
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+
+function PureDashHeader() {
   return (
-    <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
-      <SidebarToggle />
-      <Button
-        className="bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-zinc-50 dark:text-zinc-900 hidden md:flex py-1.5 px-2 h-fit md:h-[34px] order-4 md:ml-auto"
-        asChild
-      >
-        <Link href={`/`} target="_noblank">
-          <MessageCircleCodeIcon size={16} />
-          ChatBot
-        </Link>
-      </Button>
+    <header className="flex h-[--header-height] shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-[--header-height]">
+      <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
+        <SidebarTrigger className="-ml-1" />
+        <Separator
+          orientation="vertical"
+          className="mx-2 data-[orientation=vertical]:h-4"
+        />
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
+            <a
+              href="/"
+              rel="noopener noreferrer"
+              target="_blank"
+              className="dark:text-foreground"
+            >
+              首页
+            </a>
+          </Button>
+        </div>
+      </div>
     </header>
   );
 }
 
-export const DashHeader = memo(PureDashHeader, (prevProps, nextProps) => {
-  return prevProps.session === nextProps.session;
-});
+export const DashHeader = memo(PureDashHeader);

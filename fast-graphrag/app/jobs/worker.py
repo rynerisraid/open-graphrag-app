@@ -3,7 +3,7 @@
 """
 import asyncio
 from app.jobs.manager import JobManager
-from app.services.kg_builder import run_kg_pipeline
+# from app.services.kg_builder import run_kg_pipeline
 from app.config.db import get_db
 from sqlalchemy.orm import Session
 
@@ -16,8 +16,8 @@ async def run_kg_job(job_id: int, input_file: str):
     db: Session = next(db_gen)
     try:
         JobManager.update_status(db, job_id, "running")
-        result = await run_kg_pipeline(input_file)
-        JobManager.update_status(db, job_id, "success", result=result)
+        #result = await run_kg_pipeline(input_file)
+        #JobManager.update_status(db, job_id, "success", result=result)
     except Exception as e:
         JobManager.update_status(db, job_id, "failed", error_msg=str(e))
     finally:

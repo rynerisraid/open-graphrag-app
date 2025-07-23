@@ -23,8 +23,8 @@ app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
 app.include_router(workspace_router.router) # prefix="/workspace", tags=["workspace"]
 app.include_router(file_router.router) #  prefix="/file", tags=["file"]
 app.include_router(jobs_router.router) #  prefix="/jobs", tags=["jobs"]
-app.include_router(jobs.router)
-app.include_router(kg.router)
+# app.include_router(jobs.router)
+# app.include_router(kg.router)
 
 @app.get("/")
 def read_root():

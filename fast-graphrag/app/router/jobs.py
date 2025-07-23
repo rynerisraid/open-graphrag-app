@@ -10,7 +10,7 @@ from app.jobs.schemas import JobCreate, JobRead
 from app.models.job import Job
 from app.models.file import File as FileORM
 
-router = APIRouter()
+router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 @router.post("/jobs/", response_model=JobRead)
 def create_job(
