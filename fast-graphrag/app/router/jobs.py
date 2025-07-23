@@ -1,66 +1,38 @@
-from fastapi import APIRouter, Depends, HTTPException
+"""
+Job相关的FastAPI路由，包含任务创建、状态查询、任务列表接口
+"""
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from sqlalchemy.orm import Session
+from app.config.db import get_db
+from app.jobs.manager import JobManager
+from app.jobs.worker import run_kg_job_sync
+from app.jobs.schemas import JobCreate, JobRead
 from app.models.job import Job
-from app.config.db import get_async_db
-from app.core.dependencies import get_current_user
+from app.models.file import File as FileORM
 
-import uuid
+router = APIRouter()
 
-
-router = APIRouter(prefix="/jobs", tags=["jobs"])
-
-from pydantic import BaseModel
-from typing import Optional, Dict, Any
-
-class JobCreate(BaseModel):
-    pipeline_steps: Optional[Dict[str, Any]] = None
-
-class JobRead(BaseModel):
-    id: uuid.UUID
-    user_id: uuid.UUID
-    status: str
-    pipeline_steps: Optional[Dict[str, Any]] = None
-    created_at: str
-    updated_at: str
-    class Config:
-        from_attributes = True
-
-@router.post("/", response_model=JobRead)
-async def create_job_api(
+@router.post("/jobs/", response_model=JobRead)
+def create_job(
     job: JobCreate,
-    current_user=Depends(get_current_user),
-    session= Depends(get_async_db)
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
 ):
+    db_file = db.query(FileORM).filter(FileORM.id == job.file_id).first()
+    if not db_file:
+        raise HTTPException(status_code=404, detail="File not found")
+    file_path = db_file.filepath
+    job_obj = JobManager.create_job(db, input_file=file_path)
+    background_tasks.add_task(run_kg_job_sync, job_obj.id, file_path)
+    return job_obj
 
-    db_job = Job(user_id=current_user.id, status="queued", pipeline_steps=job.pipeline_steps or {})
-    session.add(db_job)
-    await session.commit()
-    await session.refresh(db_job)
-    return db_job
+@router.get("/jobs/{job_id}", response_model=JobRead)
+def get_job(job_id: int, db: Session = Depends(get_db)):
+    job = JobManager.get_job(db, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
 
-@router.patch("/{job_id}")
-async def update_job_status_api(
-    job_id: uuid.UUID,
-    status: str,
-    pipeline_steps: Optional[Dict[str, Any]] = None,
-    current_user=Depends(get_current_user),
-    session= Depends(get_async_db)
-):
-
-    db_job = await session.get(Job, job_id)
-    if not db_job or db_job.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Job not found or no permission")
-    db_job.status = status
-    if pipeline_steps is not None:
-        db_job.pipeline_steps = pipeline_steps
-    await session.commit()
-    return {"ok": True}
-
-@router.get("/{job_id}", response_model=JobRead)
-async def get_job_api(
-    job_id: uuid.UUID, 
-    current_user=Depends(get_current_user),    
-    session= Depends(get_async_db)):
-    db_job = await session.get(Job, job_id)
-    if not db_job or db_job.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Job not found or no permission")
-    return db_job
+@router.get("/jobs/", response_model=list[JobRead])
+def list_jobs(db: Session = Depends(get_db)):
+    return JobManager.list_jobs(db)
