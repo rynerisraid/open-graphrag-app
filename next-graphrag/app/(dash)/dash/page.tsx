@@ -73,7 +73,7 @@ function DataTable() {
                       "inline-block rounded px-2 py-0.5 text-xs",
                       r.status === "完成"
                         ? "bg-green-500/10 text-green-700 dark:text-green-400"
-                        : "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400",
+                        : "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400"
                     )}
                   >
                     {r.status}
@@ -91,7 +91,7 @@ function DataTable() {
 export default function DashboardPage() {
   return (
     <div className="flex flex-1 flex-col">
-      <div className="@container/main flex flex-1 flex-col gap-2">
+      <div className="flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
           <SectionCards />
           <div className="px-4 lg:px-6">

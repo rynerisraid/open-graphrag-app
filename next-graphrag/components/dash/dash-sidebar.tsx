@@ -11,10 +11,10 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
-import { NavMain } from "@/components/nav-main";
-import { NavDocuments } from "@/components/nav-documents";
-import { NavSecondary } from "@/components/nav-secondary";
-import { NavUser } from "@/components/nav-user";
+import { NavMain } from "@/components/dash/nav-main";
+import { NavDocuments } from "@/components/dash/nav-documents";
+import { NavSecondary } from "@/components/dash/nav-secondary";
+import { NavUser } from "@/components/dash/nav-user";
 
 // Lucide icons
 import {
@@ -59,12 +59,18 @@ export function DashSidebar({ user }: { user: User | undefined }) {
   };
 
   return (
-    <Sidebar collapsible="offcanvas" className="group-data-[side=left]:border-r-0">
+    <Sidebar
+      collapsible="offcanvas"
+      className="group-data-[side=left]:border-r-0"
+    >
       {/* 顶部品牌 */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
               <a href="/dash" className="flex items-center gap-2">
                 <SparklesIcon className="size-5 text-primary" />
                 <span className="text-base font-semibold">Open Graphrag</span>
