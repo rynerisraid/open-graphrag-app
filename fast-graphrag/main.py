@@ -10,6 +10,11 @@ from app.config.db import engine,Base
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
 from app.router import jobs, kg
+# -------------------- CORS --------------------
+from fastapi.middleware.cors import CORSMiddleware
+
+# 前端部署域名，生产环境请改为具体地址，例如 ["https://app.example.com"]
+origins = ["*"]
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -18,6 +23,14 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(lifespan=lifespan)
 
+# 添加 CORS 中间件，解决跨域请求问题
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
 app.include_router(workspace_router.router) # prefix="/workspace", tags=["workspace"]

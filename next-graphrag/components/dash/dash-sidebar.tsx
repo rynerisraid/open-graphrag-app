@@ -35,7 +35,7 @@ import {
 export function DashSidebar({ user }: { user: User | undefined }) {
   const data = {
     user: {
-      name: user?.name ?? "Guest",
+      name: user?.email ? user?.email.split("@")[0] : "Guest",
       email: user?.email ?? "guest@example.com",
       avatar: user?.image ?? "/avatars/shadcn.jpg",
     },

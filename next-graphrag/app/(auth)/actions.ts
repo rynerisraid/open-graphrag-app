@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 
-import { createUser, getUser } from '@/lib/db/queries';
+// 使用后端接口进行用户注册与登录
 
 import { signIn } from './auth';
 
@@ -43,12 +43,12 @@ export const login = async (
 
 export interface RegisterActionState {
   status:
-    | 'idle'
-    | 'in_progress'
-    | 'success'
-    | 'failed'
-    | 'user_exists'
-    | 'invalid_data';
+  | 'idle'
+  | 'in_progress'
+  | 'success'
+  | 'failed'
+  | 'user_exists'
+  | 'invalid_data';
 }
 
 export const register = async (
@@ -61,12 +61,37 @@ export const register = async (
       password: formData.get('password'),
     });
 
-    const [user] = await getUser(validatedData.email);
+    console.log('------------------')
 
-    if (user) {
+    // 调用 FastAPI 注册接口
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+
+    console.log(JSON.stringify(apiBase))
+    const res = await fetch(`${apiBase}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: validatedData.email,
+        email: validatedData.email,
+        password: validatedData.password,
+        full_name: 'momo',
+      }),
+    });
+
+    console.log(JSON.stringify(res))
+
+
+
+    if (res.status === 400) {
       return { status: 'user_exists' } as RegisterActionState;
     }
-    await createUser(validatedData.email, validatedData.password);
+
+    if (!res.ok) {
+      return { status: 'failed' } as RegisterActionState;
+    }
+
     await signIn('credentials', {
       email: validatedData.email,
       password: validatedData.password,

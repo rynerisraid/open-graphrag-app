@@ -8,7 +8,7 @@ from pydantic import BaseModel
 import uuid
 from app.core.dependencies import get_current_user
 from datetime import datetime
-from app.config import settings
+from app.config.settings import settings
 import os
 
 router = APIRouter(prefix="/workspace", tags=["workspace"])

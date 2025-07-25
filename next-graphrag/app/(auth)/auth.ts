@@ -1,9 +1,7 @@
-import { compare } from 'bcrypt-ts';
 import NextAuth, { type DefaultSession } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { createGuestUser, getUser } from '@/lib/db/queries';
+import { createGuestUser } from '@/lib/db/queries';
 import { authConfig } from './auth.config';
-import { DUMMY_PASSWORD } from '@/lib/constants';
 import type { DefaultJWT } from 'next-auth/jwt';
 
 export type UserType = 'guest' | 'regular';
@@ -27,6 +25,7 @@ declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
     id: string;
     type: UserType;
+    access_token?: string;
   }
 }
 
@@ -41,25 +40,41 @@ export const {
     Credentials({
       credentials: {},
       async authorize({ email, password }: any) {
-        const users = await getUser(email);
+        try {
+          const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
-        if (users.length === 0) {
-          await compare(password, DUMMY_PASSWORD);
+          // 1. 获取 access token
+          const tokenRes = await fetch(`${apiBase}/auth/token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ username: email, password }),
+          });
+
+          if (!tokenRes.ok) {
+            return null;
+          }
+
+          const { access_token } = await tokenRes.json();
+
+          // 2. 使用 token 获取当前用户信息
+          const meRes = await fetch(`${apiBase}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+            },
+          });
+
+          if (!meRes.ok) {
+            return null;
+          }
+
+          const user = await meRes.json();
+
+          return { ...user, access_token, type: 'regular' };
+        } catch {
           return null;
         }
-
-        const [user] = users;
-
-        if (!user.password) {
-          await compare(password, DUMMY_PASSWORD);
-          return null;
-        }
-
-        const passwordsMatch = await compare(password, user.password);
-
-        if (!passwordsMatch) return null;
-
-        return { ...user, type: 'regular' };
       },
     }),
     Credentials({
@@ -74,8 +89,9 @@ export const {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id as string;
-        token.type = user.type;
+        token.id = (user as any).id as string;
+        token.type = (user as any).type;
+        token.access_token = (user as any).access_token;
       }
 
       return token;
@@ -83,8 +99,11 @@ export const {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
-        session.user.type = token.type;
+        session.user.type = token.type as any;
       }
+
+      // 将 access_token 暴露给前端（仅在需要时，可移除）
+      (session as any).access_token = (token as any).access_token;
 
       return session;
     },
